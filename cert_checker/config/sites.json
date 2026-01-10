@@ -1,0 +1,9 @@
+{
+  "sites": [
+    "misho.dev",
+    {
+      "host": "misho.dev",
+      "port": 443
+    }
+  ]
+}
