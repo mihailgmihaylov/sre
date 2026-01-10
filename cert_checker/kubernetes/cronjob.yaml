@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cert-checker
+  namespace: sre-tools
+spec:
+  schedule: "0 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: cert-checker
+              image: mihailgmihaylov/cert-checker:v0.0.1
+              args:
+                - "--config"
+                - "/config/sites.json"
+                - "--output"
+                - "table"
+              volumeMounts:
+                - name: cert-config
+                  mountPath: /config
+                  readOnly: true
+          volumes:
+            - name: cert-config
+              configMap:
+                name: cert-checker-config
