@@ -1,0 +1,5 @@
+project_id             = "my-gcp-project"
+region                 = "us-central1"
+db_zone                = "us-central1-a"
+database_password      = "changeme123!"
+database_root_password = "rootchangeme123!"
