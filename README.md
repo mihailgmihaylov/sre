@@ -89,3 +89,27 @@ The CronJob runs the checker every hour (`schedule: "0 * * * *"`). Adjust the sc
 ---
 
 The second task (infrastructure automation) is currently a placeholder for future work.
+
+## Task 2 – Infrastructure Automation on Google Cloud
+
+The `infra/` directory contains a single Terraform configuration that builds the required stack on Google Cloud:
+
+- A custom VPC with web/database subnets and firewall policies.
+- A zonal Managed Instance Group (Debian + Nginx) behind a global HTTP load balancer.
+- A MariaDB VM that serves as the database tier and lives on its own subnet.
+
+### Usage overview
+
+1. Follow `infra/README.md` to create a GCS bucket for Terraform state, a Terraform service account, and enable the Compute API.
+2. Copy `infra/terraform.tfvars.example` to `infra/terraform.tfvars` and populate at least `project_id`, `region`, and the database passwords.
+3. Initialize, plan, and apply:
+   ```bash
+   cd infra
+   terraform init
+   terraform plan
+   terraform apply
+   ```
+4. Terraform outputs the load-balancer URL (pointing to the simple web app) and the internal IP/connection string for the MariaDB VM.
+5. Run `terraform destroy` when you are done with the demo to avoid charges.
+
+The Managed Instance Group plus global HTTP load balancer automatically replaces failed VMs, delivering the required fail-over behavior with minimal code.

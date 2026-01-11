@@ -91,3 +91,70 @@ Terraform configurations in this repository will store their remote state in a G
    terraform init
    ```
    Terraform will now use the remote backend in the GCS bucket with the permissions of the Terraform service account.
+
+---
+
+## Project layout
+
+```
+infra/
+├── backend.tf                 # Remote state backend (edit bucket name)
+├── main.tf                    # All resources (network, web, database)
+├── variables.tf               # Input definitions
+├── outputs.tf                 # Useful values after apply
+├── terraform.tfvars.example   # Sample variable file to copy
+└── scripts/                   # Startup scripts for web and DB instances
+```
+
+## Enable required Google Cloud APIs
+
+Run once per project:
+
+```bash
+gcloud services enable compute.googleapis.com
+```
+
+## Usage
+
+1. **Edit `backend.tf`**
+   Replace `REPLACE_WITH_TF_STATE_BUCKET` with the bucket name created earlier (or remove the hard-coded bucket and pass `-backend-config` flags during `terraform init`).
+
+2. **Copy and edit variables**
+   ```bash
+   cd infra
+   cp terraform.tfvars.example terraform.tfvars
+   # edit terraform.tfvars with your project_id, passwords, regions, etc.
+   ```
+
+3. **Initialize Terraform**
+   ```bash
+   terraform init
+   ```
+
+4. **Review the plan**
+   ```bash
+   terraform plan
+   ```
+
+5. **Apply**
+   ```bash
+   terraform apply
+   ```
+   The apply step provisions:
+   - Custom VPC with separate web/database subnets and firewall policies.
+   - Zonal managed instance group running Nginx behind a global HTTP load balancer.
+   - Standalone MariaDB VM configured with the credentials supplied in `terraform.tfvars`.
+
+6. **Retrieve outputs**
+   After apply, Terraform prints the load balancer URL and the internal database IP/connection string.
+
+7. **Tear down**
+   ```bash
+   terraform destroy
+   ```
+   This removes all provisioned infrastructure.
+
+## Notes
+
+- The managed instance group plus HTTP load balancer handles fail-over automatically: if a VM goes down the health check pulls it out of rotation, and the MIG recreates instances.
+- Database credentials are stored only in Terraform state and the VM during provisioning. Rotate them by updating `terraform.tfvars` and reapplying.
